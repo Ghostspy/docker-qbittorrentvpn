@@ -8,10 +8,11 @@ RUN usermod -u 99 nobody
 
 # Make directories and install common packages
 RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
-    && apt-update \
-    && apt-upgrade -y \
-    && apt-install -y --no-install-recommends \
+    && apt update \
+    && apt upgrade -y \
+    && apt install -y --no-install-recommends \
     gnupg2 \
+    lsb-release \
     wget \
     && apt-get clean \
     && apt --purge autoremove -y \
@@ -19,7 +20,7 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     /var/lib/apt/lists/* \
     /tmp/* \
     /var/tmp/*
-    
+
 # Install boost
 RUN apt update \
     && apt upgrade -y  \
@@ -109,7 +110,7 @@ RUN apt update \
     curl \
     jq \
     libssl-dev \
-    && LIBTORRENT_ASSETS=$(curl -sX GET "https://api.github.com/repos/arvidn/libtorrent/releases" | jq '.[] | select(.prerelease==false) | select(.target_commitish=="RC_1_2") | .assets_url' | head -n 1 | tr -d '"') \
+    && LIBTORRENT_ASSETS=$(curl -sX GET "https://api.github.com/repos/arvidn/libtorrent/releases" | jq '.[] | select(.prerelease==false) | select(.target_commitish=="RC_2_0") | .assets_url' | head -n 1 | tr -d '"') \
     && LIBTORRENT_DOWNLOAD_URL=$(curl -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .browser_download_url' | tr -d '"') \
     && LIBTORRENT_NAME=$(curl -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .name' | tr -d '"') \
     && curl -o /opt/${LIBTORRENT_NAME} -L ${LIBTORRENT_DOWNLOAD_URL} \
@@ -180,9 +181,9 @@ RUN apt update \
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    # && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
-    # && apt-key add openvpn-repo-pkg-key.pub \
-    # && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
+    && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
+    && apt-key add openvpn-repo-pkg-key.pub \
+    && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
     && apt update \
     && apt install -y --no-install-recommends \
     ca-certificates \
@@ -199,7 +200,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
     net-tools \
     openresolv \
     openvpn \
-    # openvpn3 \
+    openvpn3 \
     procps \
     wireguard-tools \
     && apt-get clean \
