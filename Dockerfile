@@ -1,13 +1,25 @@
 # qBittorrent, OpenVPN and WireGuard, qbittorrentvpn
-FROM debian:bullseye-slim
+# FROM debian:bullseye-slim
+FROM ubuntu:jammy
 
 WORKDIR /opt
 
 RUN usermod -u 99 nobody
 
-# Make directories
-RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent
-
+# Make directories and install common packages
+RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
+    && apt-update \
+    && apt-upgrade -y \
+    && apt-install -y --no-install-recommends \
+    gnupg2 \
+    wget \
+    && apt-get clean \
+    && apt --purge autoremove -y \
+    && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/*
+    
 # Install boost
 RUN apt update \
     && apt upgrade -y  \
@@ -165,8 +177,12 @@ RUN apt update \
     /var/tmp/*
 
 # Install WireGuard and some other dependencies some of the scripts in the container rely on.
-RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
+    echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
+    # && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
+    # && apt-key add openvpn-repo-pkg-key.pub \
+    # && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
     && apt update \
     && apt install -y --no-install-recommends \
     ca-certificates \
@@ -183,6 +199,7 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.li
     net-tools \
     openresolv \
     openvpn \
+    # openvpn3 \
     procps \
     wireguard-tools \
     && apt-get clean \
