@@ -1,6 +1,6 @@
 # qBittorrent, OpenVPN and WireGuard, qbittorrentvpn
 # FROM debian:bullseye-slim
-FROM ubuntu:jammy
+FROM ubuntu:kinetic
 
 WORKDIR /opt
 
@@ -179,11 +179,11 @@ RUN apt update \
 
 # Install WireGuard and some other dependencies some of the scripts in the container rely on.
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
-    echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
+    && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
-    && apt-key add openvpn-repo-pkg-key.pub \
-    && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
+    # && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
+    # && apt-key add openvpn-repo-pkg-key.pub \
+    # && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
     && apt update \
     && apt install -y --no-install-recommends \
     ca-certificates \
@@ -195,12 +195,12 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
     libqt5network5 \
     libqt5xml5 \
     libqt5sql5 \
-    libssl1.1 \
+    libssl3 \
     moreutils \
     net-tools \
     openresolv \
     openvpn \
-    openvpn3 \
+    # openvpn3 \
     procps \
     wireguard-tools \
     && apt-get clean \
