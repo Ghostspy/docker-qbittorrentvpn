@@ -196,18 +196,15 @@ RUN apt update \
     && wget -Nc https://github.com/Jackett/Jackett/releases/download/$release/"$f" \
     && tar -xzf "$f" \
     && chown -R root:root /opt/Jackett \
-    && rm -f "$f" \
-    && cd Jackett* \
-    && apt purge -y \
-    ca-certificates
+    && rm -f "$f"
 
 # Install WireGuard and some other dependencies some of the scripts in the container rely on.
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    # && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
-    # && apt-key add openvpn-repo-pkg-key.pub \
-    # && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
+    && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
+    && apt-key add openvpn-repo-pkg-key.pub \
+    && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
     && apt update \
     && apt install -y --no-install-recommends \
     ca-certificates \
@@ -224,7 +221,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
     net-tools \
     openresolv \
     openvpn \
-    # openvpn3 \
+    openvpn3 \
     procps \
     wireguard-tools \
     && apt-get clean \
@@ -260,12 +257,14 @@ ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
 ADD root/ /
 
-RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
+RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healtcheck.sh
 
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
 EXPOSE 9117
 
-ENTRYPOINT [ "/init" ]
+# ENTRYPOINT [ "/init" ]
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
+
+HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1
