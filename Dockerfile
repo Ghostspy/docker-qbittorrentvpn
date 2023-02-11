@@ -13,13 +13,21 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt install -y --no-install-recommends \
     gnupg2 \
     lsb-release \
+    tar \
     wget \
+    xz-utils \
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
     /var/lib/apt/lists/* \
     /tmp/* \
     /var/tmp/*
+
+# Install s6-overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.3.0/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.3.0/s6-overlay-x86_64.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 # Install boost
 RUN apt update \
@@ -177,6 +185,22 @@ RUN apt update \
     /tmp/* \
     /var/tmp/*
 
+# Install Jackett
+RUN apt update \
+    && apt upgrade -y \
+    && apt install -y --no-install-recommends \
+    ca-certificates \
+    && cd /opt \
+    && f=Jackett.Binaries.LinuxAMDx64.tar.gz \
+    && release=$(wget -q https://github.com/Jackett/Jackett/releases/latest -O - | grep "title>Release" | cut -d " " -f 4) \
+    && wget -Nc https://github.com/Jackett/Jackett/releases/download/$release/"$f" \
+    && tar -xzf "$f" \
+    && chown -R root:root /opt/Jackett \
+    && rm -f "$f" \
+    && cd Jackett* \
+    && apt purge -y \
+    ca-certificates
+
 # Install WireGuard and some other dependencies some of the scripts in the container rely on.
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
@@ -234,10 +258,14 @@ VOLUME /config /downloads
 
 ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
+ADD root/ /
 
 RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh
 
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
+EXPOSE 9117
+
+ENTRYPOINT [ "/init" ]
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
