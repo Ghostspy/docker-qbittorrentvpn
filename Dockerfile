@@ -11,7 +11,9 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
+    curl \
     gnupg2 \
+    iproute2 \
     lsb-release \
     tar \
     wget \
@@ -33,7 +35,6 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 RUN apt update \
     && apt upgrade -y  \
     && apt install -y --no-install-recommends \
-    curl \
     ca-certificates \
     g++ \
     libxml2-utils \
@@ -47,7 +48,6 @@ RUN apt update \
     && cd /opt \
     && rm -rf /opt/* \
     && apt -y purge \
-    curl \
     ca-certificates \
     g++ \
     libxml2-utils \
@@ -63,7 +63,6 @@ RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
     ca-certificates \
-    curl \
     jq \
     unzip \
     && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/ninja-build/ninja/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
@@ -75,7 +74,6 @@ RUN apt update \
     && rm -rf /opt/* \
     && apt purge -y \
     ca-certificates \
-    curl \
     jq \
     unzip \
     && apt-get clean \
@@ -90,7 +88,6 @@ RUN apt update \
     && apt upgrade -y \
     && apt install -y  --no-install-recommends \
     ca-certificates \
-    curl \
     jq \
     && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
     && CMAKE_DOWNLOAD_URL=$(curl -sX GET ${CMAKE_ASSETS} | jq '.[] | select(.name | match("Linux-x86_64.sh";"i")) .browser_download_url' | tr -d '"') \
@@ -100,7 +97,6 @@ RUN apt update \
     && rm -rf /opt/* \
     && apt purge -y \
     ca-certificates \
-    curl \
     jq \
     && apt-get clean \
     && apt --purge autoremove -y \
@@ -115,7 +111,6 @@ RUN apt update \
     && apt install -y --no-install-recommends \
     build-essential \
     ca-certificates \
-    curl \
     jq \
     libssl-dev \
     && LIBTORRENT_ASSETS=$(curl -sX GET "https://api.github.com/repos/arvidn/libtorrent/releases" | jq '.[] | select(.prerelease==false) | select(.target_commitish=="RC_2_0") | .assets_url' | head -n 1 | tr -d '"') \
@@ -133,7 +128,6 @@ RUN apt update \
     && apt purge -y \
     build-essential \
     ca-certificates \
-    curl \
     jq \
     libssl-dev \
     && apt-get clean \
@@ -149,7 +143,6 @@ RUN apt update \
     && apt install -y --no-install-recommends \
     build-essential \
     ca-certificates \
-    curl \
     git \
     jq \
     libssl-dev \
@@ -170,7 +163,6 @@ RUN apt update \
     && apt purge -y \
     build-essential \
     ca-certificates \
-    curl \
     git \
     jq \
     libssl-dev \
@@ -202,9 +194,9 @@ RUN apt update \
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
-    && apt-key add openvpn-repo-pkg-key.pub \
-    && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-${lsb_release -sc}.list \
+    # && wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub \
+    # && apt-key add openvpn-repo-pkg-key.pub \
+    # && wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-kinetic.list \
     && apt update \
     && apt install -y --no-install-recommends \
     ca-certificates \
@@ -221,7 +213,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
     net-tools \
     openresolv \
     openvpn \
-    openvpn3 \
+    # openvpn3 \
     procps \
     wireguard-tools \
     && apt-get clean \
@@ -257,7 +249,7 @@ ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
 ADD root/ /
 
-RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healtcheck.sh
+RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healthcheck.sh
 
 EXPOSE 8080
 EXPOSE 8999
