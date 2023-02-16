@@ -6,6 +6,7 @@ LABEL org.opencontainers.image.version="4.5.0"
 LABEL org.opencontainers.image.description="qBittorrent, OpenVPN and WireGuard"
 LABEL org.opencontainers.image.title="qBittorrentVPN"
 
+ARG S6_OVERLAY_VERSION=3.1.3.0
 
 WORKDIR /opt
 
@@ -31,9 +32,9 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     /var/tmp/*
 
 # Install s6-overlay
-ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.3.0/s6-overlay-noarch.tar.xz /tmp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
-ADD https://github.com/just-containers/s6-overlay/releases/download/v3.1.3.0/s6-overlay-x86_64.tar.xz /tmp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 # Install boost
