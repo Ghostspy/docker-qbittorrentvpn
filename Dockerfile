@@ -9,11 +9,13 @@ LABEL org.opencontainers.image.title="qBittorrentVPN"
 ARG TARGETARCH
 ARG S6_OVERLAY_VERSION=3.1.3.0
 
+# Step 2
 WORKDIR /opt
 
-RUN usermod -u 99 nobody
+# Step 3
+RUN usermod -u 99 nobody 
 
-# Make directories and install common packages
+# Make directories and install common packages - Step 4
 RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt update \
     && apt upgrade -y \
@@ -37,7 +39,7 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
         /tmp/* \
         /var/tmp/*
 
-# Install s6-overlay
+# Install s6-overlay - Step 5
 RUN case ${TARGETARCH} in \
         arm|arm/v7) ARCH="armf" ;; \
         arm/v6) ARCH="arm" ;; \
@@ -59,7 +61,7 @@ RUN case ${TARGETARCH} in \
         /tmp/* \
         /var/tmp/*    
 
-# Install boost
+# Install boost - Step 6
 RUN apt update \
     && apt upgrade -y  \
     && apt install -y --no-install-recommends \
@@ -86,30 +88,30 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install Ninja
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y --no-install-recommends \
-        ca-certificates \
-        jq \
-    && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/ninja-build/ninja/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-    && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-linux";"i")) .browser_download_url' | tr -d '"') \
-    && curl -o /opt/ninja-linux.zip -L ${NINJA_DOWNLOAD_URL} \
-    && unzip /opt/ninja-linux.zip -d /opt \
-    && mv /opt/ninja /usr/local/bin/ninja \
-    && chmod +x /usr/local/bin/ninja \
-    && rm -rf /opt/* \
-    && apt purge -y \
-        ca-certificates \
-        jq \
-    && apt-get clean \
-    && apt --purge autoremove -y \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/*
+# Install Ninja - Step 7
+# RUN apt update \
+#     && apt upgrade -y \
+#     && apt install -y --no-install-recommends \
+#         ca-certificates \
+#         jq \
+#     && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/ninja-build/ninja/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
+#     && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-linux";"i")) .browser_download_url' | tr -d '"') \
+#     && curl -o /opt/ninja-linux.zip -L ${NINJA_DOWNLOAD_URL} \
+#     && unzip /opt/ninja-linux.zip -d /opt \
+#     && mv /opt/ninja /usr/local/bin/ninja \
+#     && chmod +x /usr/local/bin/ninja \
+#     && rm -rf /opt/* \
+#     && apt purge -y \
+#         ca-certificates \
+#         jq \
+#     && apt-get clean \
+#     && apt --purge autoremove -y \
+#     && rm -rf \
+#         /var/lib/apt/lists/* \
+#         /tmp/* \
+#         /var/tmp/*
 
-# Install cmake
+# Install cmake - Step 8
 RUN case ${TARGETARCH} in \
         arm|arm/v7) ARCH="armf" ;; \
         arm/v6) ARCH="arm" ;; \
@@ -120,6 +122,7 @@ RUN case ${TARGETARCH} in \
     && apt update \
     && apt upgrade -y \
     && apt install -y  --no-install-recommends \
+        ninja-build \
         ca-certificates \
         jq \
     && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
@@ -138,7 +141,7 @@ RUN case ${TARGETARCH} in \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install libtorrent-rasterbar
+# Compile and install libtorrent-rasterbar - Step 9
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -170,7 +173,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install qBittorrent
+# Compile and install qBittorrent - Step 10
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -210,7 +213,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install Jackett
+# Install Jackett Step 11
 RUN case ${TARGETARCH} in \
         arm|arm/v6|arm/v7) ARCH="ARM32" ;; \
         arm64|arm/v8) ARCH="ARM64" ;; \
@@ -231,11 +234,12 @@ RUN case ${TARGETARCH} in \
         ca-certificates \
     && apt-get clean \
     && apt --purge autoremove -y \
+    && rm -rf \    
         /var/lib/apt/lists/* \
         /tmp/* \
         /var/tmp/*
 
-# Install WireGuard and some other dependencies some of the scripts in the container rely on.
+# Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 12
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
@@ -264,7 +268,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
         /tmp/* \
         /var/tmp/*
 
-# Remove src_valid_mark from wg-quick
+# Remove src_valid_mark from wg-quick - Step 13
 RUN sed -i /net\.ipv4\.conf\.all\.src_valid_mark/d `which wg-quick`
 
 VOLUME /config /downloads
