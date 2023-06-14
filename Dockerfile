@@ -2,7 +2,7 @@
 FROM ubuntu:jammy
 
 LABEL org.opencontainers.image.authors="ghost@ghosthacker.com"
-LABEL org.opencontainers.image.version="4.5.1"
+LABEL org.opencontainers.image.version="4.5.3"
 LABEL org.opencontainers.image.description="qBittorrent, OpenVPN and WireGuard"
 LABEL org.opencontainers.image.title="qBittorrentVPN"
 
@@ -22,10 +22,20 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt install -y --no-install-recommends \
         ca-certificates \
         curl \
+        dotnet7 \
+        dotnet-apphost-pack-7.0 \
+        dotnet-host-7.0 \
+        dotnet-hostfxr-7.0 \
+        dotnet-runtime-7.0 \
+        dotnet-sdk-7.0 \
+        dotnet-targeting-pack-7.0 \
         gnupg2 \
         iproute2 \
         lsb-release \
         p7zip-full \
+        python3 \
+        python3-dev \
+        python3-pip \
         tar \
         unrar \
         unzip \
