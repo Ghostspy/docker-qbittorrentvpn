@@ -88,6 +88,10 @@ if [[ $iptable_mangle_exit_code == 0 ]]; then
 	echo "8999    webui" >> /etc/iproute2/rt_tables
 	ip rule add fwmark 1 table webui
 	ip route add default via ${DEFAULT_GATEWAY} table webui
+	# setup route for jackett webui using set-mark to route traffic for port 9117 to "${docker_interface}"
+	echo "9117    jackettui" >> /etc/iproute2/rt_tables
+	ip rule add fwmark 1 table jackettui
+	ip route add default via ${DEFAULT_GATEWAY} table jackettui
 fi
 
 # input iptable rules
@@ -111,6 +115,10 @@ iptables -A INPUT -i "${docker_interface}" -p $VPN_PROTOCOL --sport $VPN_PORT -j
 # accept input to qBittorrent webui port
 iptables -A INPUT -i "${docker_interface}" -p tcp --dport 8080 -j ACCEPT
 iptables -A INPUT -i "${docker_interface}" -p tcp --sport 8080 -j ACCEPT
+
+# accept input to jackett webui port
+iptables -A INPUT -i "${docker_interface}" -p tcp --dport 9117 -j ACCEPT
+iptables -A INPUT -i "${docker_interface}" -p tcp --sport 9117 -j ACCEPT
 
 # additional port list for scripts or container linking
 if [[ ! -z "${ADDITIONAL_PORTS}" ]]; then
@@ -160,11 +168,18 @@ if [[ $iptable_mangle_exit_code == 0 ]]; then
 	# accept output from qBittorrent webui port - used for external access
 	iptables -t mangle -A OUTPUT -p tcp --dport 8080 -j MARK --set-mark 1
 	iptables -t mangle -A OUTPUT -p tcp --sport 8080 -j MARK --set-mark 1
+	# accept output from jaccket webui port - used for external access
+	iptables -t mangle -A OUTPUT -p tcp --dport 9117 -j MARK --set-mark 1
+	iptables -t mangle -A OUTPUT -p tcp --sport 9117 -j MARK --set-mark 1	
 fi
 
 # accept output from qBittorrent webui port - used for lan access
 iptables -A OUTPUT -o "${docker_interface}" -p tcp --dport 8080 -j ACCEPT
 iptables -A OUTPUT -o "${docker_interface}" -p tcp --sport 8080 -j ACCEPT
+
+# accept output from jackett webui port - used for lan access
+iptables -A OUTPUT -o "${docker_interface}" -p tcp --dport 9117 -j ACCEPT
+iptables -A OUTPUT -o "${docker_interface}" -p tcp --sport 9117 -j ACCEPT
 
 # additional port list for scripts or container linking
 if [[ ! -z "${ADDITIONAL_PORTS}" ]]; then

@@ -2,12 +2,12 @@
 FROM ubuntu:jammy
 
 LABEL org.opencontainers.image.authors="ghost@ghosthacker.com"
-LABEL org.opencontainers.image.version="4.5.3"
+LABEL org.opencontainers.image.version="4.5.5"
 LABEL org.opencontainers.image.description="qBittorrent, OpenVPN and WireGuard"
 LABEL org.opencontainers.image.title="qBittorrentVPN"
 
 ARG TARGETARCH
-ARG S6_OVERLAY_VERSION=3.1.3.0
+ARG S6_OVERLAY_VERSION=3.1.5.0
 
 # Step 2
 WORKDIR /opt
@@ -22,13 +22,6 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt install -y --no-install-recommends \
         ca-certificates \
         curl \
-        dotnet7 \
-        dotnet-apphost-pack-7.0 \
-        dotnet-host-7.0 \
-        dotnet-hostfxr-7.0 \
-        dotnet-runtime-7.0 \
-        dotnet-sdk-7.0 \
-        dotnet-targeting-pack-7.0 \
         gnupg2 \
         iproute2 \
         lsb-release \
@@ -287,14 +280,14 @@ ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
 ADD root/ /
 
-RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healthcheck.sh
+RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healthcheck.sh /etc/services.d/jackett/run
 
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
 EXPOSE 9117
 
-# ENTRYPOINT [ "/init" ]
+ENTRYPOINT [ "/init" ]
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
 
 HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1
