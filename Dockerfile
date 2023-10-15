@@ -55,9 +55,7 @@ RUN case ${TARGETARCH} in \
     && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${ARCH}.tar.xz \
     && tar -C / -Jxpf /tmp/s6-overlay-${ARCH}.tar.xz \
     && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz \
-    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-${ARCH}.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-${ARCH}.tar.xz
+    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
 
 # Install boost - Step 6
 RUN apt update \
@@ -262,7 +260,7 @@ EXPOSE 8999
 EXPOSE 8999/udp
 EXPOSE 9117
 
-ENTRYPOINT [ "/sbin/init" ]
-CMD ["/bin/bash", "/etc/openvpn/start.sh"]
+ENTRYPOINT [ "/init" ]
+# CMD ["/bin/bash", "/etc/openvpn/start.sh"]
 
 HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1

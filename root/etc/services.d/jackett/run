@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+
+exec /command/s6-setuidgid jackett /opt/Jackett/jackett -d /config/jackett --NoUpdates
