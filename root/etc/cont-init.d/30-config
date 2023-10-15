@@ -1,9 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-chown -R abc:abc \
-    /config/jackett
-
-if [ -z ${AUTO_UPDATE+x} ] || [ "${AUTO_UPDATE}" == "true" ]; then
-    chown -R abc:abc \
-        /opt/Jackett
-fi

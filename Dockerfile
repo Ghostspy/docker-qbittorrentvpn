@@ -54,15 +54,10 @@ RUN case ${TARGETARCH} in \
     && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
     && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${ARCH}.tar.xz \
     && tar -C / -Jxpf /tmp/s6-overlay-${ARCH}.tar.xz \
-    && apt -y purge \
-        ca-certificates \
-        xz-utils \
-    && apt-get clean \
-    && apt --purge autoremove -y \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/*    
+    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz \
+    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz \
+    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-${ARCH}.tar.xz \
+    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-${ARCH}.tar.xz
 
 # Install boost - Step 6
 RUN apt update \
@@ -91,30 +86,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install Ninja - Step 7
-# RUN apt update \
-#     && apt upgrade -y \
-#     && apt install -y --no-install-recommends \
-#         ca-certificates \
-#         jq \
-#     && NINJA_ASSETS=$(curl -sX GET "https://api.github.com/repos/ninja-build/ninja/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-#     && NINJA_DOWNLOAD_URL=$(curl -sX GET ${NINJA_ASSETS} | jq '.[] | select(.name | match("ninja-linux";"i")) .browser_download_url' | tr -d '"') \
-#     && curl -o /opt/ninja-linux.zip -L ${NINJA_DOWNLOAD_URL} \
-#     && unzip /opt/ninja-linux.zip -d /opt \
-#     && mv /opt/ninja /usr/local/bin/ninja \
-#     && chmod +x /usr/local/bin/ninja \
-#     && rm -rf /opt/* \
-#     && apt purge -y \
-#         ca-certificates \
-#         jq \
-#     && apt-get clean \
-#     && apt --purge autoremove -y \
-#     && rm -rf \
-#         /var/lib/apt/lists/* \
-#         /tmp/* \
-#         /var/tmp/*
-
-# Install cmake - Step 8
+# Install cmake - Step 7
 RUN case ${TARGETARCH} in \
         arm|arm/v7) ARCH="armf" ;; \
         arm/v6) ARCH="arm" ;; \
@@ -144,7 +116,7 @@ RUN case ${TARGETARCH} in \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install libtorrent-rasterbar - Step 9
+# Compile and install libtorrent-rasterbar - Step 8
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -176,7 +148,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install qBittorrent - Step 10
+# Compile and install qBittorrent - Step 9
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -216,7 +188,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install Jackett Step 11
+# Install Jackett Step 10
 RUN case ${TARGETARCH} in \
         arm|arm/v6|arm/v7) ARCH="ARM32" ;; \
         arm64|arm/v8) ARCH="ARM64" ;; \
@@ -226,13 +198,16 @@ RUN case ${TARGETARCH} in \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
         ca-certificates \
+        systemd \
     && cd /opt \
     && f=Jackett.Binaries.Linux${ARCH}.tar.gz \
     && release=$(wget -q https://github.com/Jackett/Jackett/releases/latest -O - | grep "title>Release" | cut -d " " -f 4) \
     && wget -Nc https://github.com/Jackett/Jackett/releases/download/$release/"$f" \
     && tar -xzf "$f" \
-    && chown -R root:root /opt/Jackett \
     && rm -f "$f" \
+    && groupadd -g 1100 jackett \
+    && useradd -c "jackett user" -g 1100 -u 1100 jackett \
+    && chown -R jackett:jackett /opt/Jackett \
     && apt purge -y \
         ca-certificates \
     && apt-get clean \
@@ -242,7 +217,7 @@ RUN case ${TARGETARCH} in \
         /tmp/* \
         /var/tmp/*
 
-# Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 12
+# Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 11
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
@@ -271,23 +246,23 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
         /tmp/* \
         /var/tmp/*
 
-# Remove src_valid_mark from wg-quick - Step 13
+# Remove src_valid_mark from wg-quick - Step 12
 RUN sed -i /net\.ipv4\.conf\.all\.src_valid_mark/d `which wg-quick`
 
 VOLUME /config /downloads
 
 ADD openvpn/ /etc/openvpn/
 ADD qbittorrent/ /etc/qbittorrent/
-ADD root/ /
+ADD root/    /
 
-RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healthcheck.sh /etc/services.d/jackett/run
+RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /healthcheck.sh
 
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
 EXPOSE 9117
 
-ENTRYPOINT [ "/init" ]
+ENTRYPOINT [ "/sbin/init" ]
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
 
 HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1

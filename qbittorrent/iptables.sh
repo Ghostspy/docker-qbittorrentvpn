@@ -213,3 +213,4 @@ iptables -S
 echo "--------------------"
 
 exec /bin/bash /etc/qbittorrent/start.sh
+exec /bin/bash /etc/services.d/jackett/run
