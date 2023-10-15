@@ -7,7 +7,6 @@ LABEL org.opencontainers.image.description="qBittorrent, OpenVPN and WireGuard"
 LABEL org.opencontainers.image.title="qBittorrentVPN"
 
 ARG TARGETARCH
-ARG S6_OVERLAY_VERSION=3.1.5.0
 
 # Step 2
 WORKDIR /opt
@@ -42,22 +41,7 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
         /tmp/* \
         /var/tmp/*
 
-# Install s6-overlay - Step 5
-RUN case ${TARGETARCH} in \
-        arm|arm/v7) ARCH="armf" ;; \
-        arm/v6) ARCH="arm" ;; \
-        arm64|arm/v8) ARCH="aarch64" ;; \
-        386) ARCH="x86" ;; \
-        amd64) ARCH="x86_64" ;; \
-    esac \
-    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${ARCH}.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-${ARCH}.tar.xz \
-    && wget -P /tmp https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz \
-    && tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
-
-# Install boost - Step 6
+# Install boost - Step 5
 RUN apt update \
     && apt upgrade -y  \
     && apt install -y --no-install-recommends \
@@ -84,7 +68,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install cmake - Step 7
+# Install cmake - Step 6
 RUN case ${TARGETARCH} in \
         arm|arm/v7) ARCH="armf" ;; \
         arm/v6) ARCH="arm" ;; \
@@ -114,7 +98,7 @@ RUN case ${TARGETARCH} in \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install libtorrent-rasterbar - Step 8
+# Compile and install libtorrent-rasterbar - Step 7
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -146,7 +130,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Compile and install qBittorrent - Step 9
+# Compile and install qBittorrent - Step 8
 RUN apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
@@ -186,36 +170,7 @@ RUN apt update \
         /tmp/* \
         /var/tmp/*
 
-# Install Jackett Step 10
-RUN case ${TARGETARCH} in \
-        arm|arm/v6|arm/v7) ARCH="ARM32" ;; \
-        arm64|arm/v8) ARCH="ARM64" ;; \
-        amd64) ARCH="AMDx64" ;; \
-    esac \
-    && apt update \
-    && apt upgrade -y \
-    && apt install -y --no-install-recommends \
-        ca-certificates \
-        systemd \
-    && cd /opt \
-    && f=Jackett.Binaries.Linux${ARCH}.tar.gz \
-    && release=$(wget -q https://github.com/Jackett/Jackett/releases/latest -O - | grep "title>Release" | cut -d " " -f 4) \
-    && wget -Nc https://github.com/Jackett/Jackett/releases/download/$release/"$f" \
-    && tar -xzf "$f" \
-    && rm -f "$f" \
-    && groupadd -g 1100 jackett \
-    && useradd -c "jackett user" -g 1100 -u 1100 jackett \
-    && chown -R jackett:jackett /opt/Jackett \
-    && apt purge -y \
-        ca-certificates \
-    && apt-get clean \
-    && apt --purge autoremove -y \
-    && rm -rf \    
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/*
-
-# Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 11
+# Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 9
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
@@ -244,7 +199,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
         /tmp/* \
         /var/tmp/*
 
-# Remove src_valid_mark from wg-quick - Step 12
+# Remove src_valid_mark from wg-quick - Step 10
 RUN sed -i /net\.ipv4\.conf\.all\.src_valid_mark/d `which wg-quick`
 
 VOLUME /config /downloads
@@ -258,9 +213,7 @@ RUN chmod +x /etc/qbittorrent/*.sh /etc/qbittorrent/*.init /etc/openvpn/*.sh /he
 EXPOSE 8080
 EXPOSE 8999
 EXPOSE 8999/udp
-EXPOSE 9117
 
-ENTRYPOINT [ "/init" ]
-# CMD ["/bin/bash", "/etc/openvpn/start.sh"]
+CMD ["/bin/bash", "/etc/openvpn/start.sh"]
 
 HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1
