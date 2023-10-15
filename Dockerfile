@@ -19,21 +19,11 @@ RUN mkdir -p /downloads /config/qBittorrent /etc/openvpn /etc/qbittorrent \
     && apt update \
     && apt upgrade -y \
     && apt install -y --no-install-recommends \
-        ca-certificates \
         curl \
-        gnupg2 \
-        iproute2 \
-        lsb-release \
-        p7zip-full \
         python3 \
         python3-dev \
         python3-pip \
         tar \
-        unrar \
-        unzip \
-        wget \
-        xz-utils \
-        zip \    
     && apt-get clean \
     && apt --purge autoremove -y \
     && rm -rf \
