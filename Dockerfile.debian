@@ -1,5 +1,5 @@
 # qBittorrent, OpenVPN and WireGuard, qbittorrentvpn
-FROM ubuntu:jammy
+FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.authors="ghost@ghosthacker.com"
 LABEL org.opencontainers.image.version="4.5.5"
