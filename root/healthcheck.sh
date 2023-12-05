@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
 TARGET=localhost
-CURL_OPTS="--connect-timeout 15 --max-time 100 --silent --show-error --fail"
+CURL_OPTS="--connect-timeout 30 --max-time 200 --silent --show-error --fail"
 
 curl ${CURL_OPTS} "http://${TARGET}:8080" >/dev/null

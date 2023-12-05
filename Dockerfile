@@ -73,9 +73,9 @@ RUN case ${TARGETARCH} in \
         ninja-build \
         ca-certificates \
         jq \
-    && CMAKE_ASSETS=$(curl -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
-    && CMAKE_DOWNLOAD_URL=$(curl -sX GET ${CMAKE_ASSETS} | jq '.[] | select(.name | match("Linux-'${ARCH}'.sh";"i")) .browser_download_url' | tr -d '"') \
-    && curl -o /opt/cmake.sh -L ${CMAKE_DOWNLOAD_URL} \
+    && CMAKE_ASSETS=$(curl --header "Authorization: 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" -sX GET "https://api.github.com/repos/Kitware/CMake/releases" | jq '.[] | select(.prerelease==false) | .assets_url' | head -n 1 | tr -d '"') \
+    && CMAKE_DOWNLOAD_URL=$(curl --header "Authorization: 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" -sX GET ${CMAKE_ASSETS} | jq '.[] | select(.name | match("Linux-'${ARCH}'.sh";"i")) .browser_download_url' | tr -d '"') \
+    && curl --header "Authorization: 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" -o /opt/cmake.sh -L ${CMAKE_DOWNLOAD_URL} \
     && chmod +x /opt/cmake.sh \
     && /bin/bash /opt/cmake.sh --skip-license --prefix=/usr \
     && rm -rf /opt/* \
@@ -97,10 +97,10 @@ RUN apt update \
         ca-certificates \
         jq \
         libssl-dev \
-    && LIBTORRENT_ASSETS=$(curl -sX GET "https://api.github.com/repos/arvidn/libtorrent/releases" | jq '.[] | select(.prerelease==false) | select(.target_commitish=="RC_2_0") | .assets_url' | head -n 1 | tr -d '"') \
-    && LIBTORRENT_DOWNLOAD_URL=$(curl -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .browser_download_url' | tr -d '"') \
-    && LIBTORRENT_NAME=$(curl -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .name' | tr -d '"') \
-    && curl -o /opt/${LIBTORRENT_NAME} -L ${LIBTORRENT_DOWNLOAD_URL} \
+    && LIBTORRENT_ASSETS=$(curl --header "Authorization: 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" -sX GET "https://api.github.com/repos/arvidn/libtorrent/releases" | jq '.[] | select(.prerelease==false) | select(.target_commitish=="RC_1_2") | .assets_url' | head -n 1 | tr -d '"') \
+    && LIBTORRENT_DOWNLOAD_URL=$(curl --header "Authorization: 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" -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .browser_download_url' | tr -d '"') \
+    && LIBTORRENT_NAME=$(curl --header "Authorization: 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" -sX GET ${LIBTORRENT_ASSETS} | jq '.[0] .name' | tr -d '"') \
+    && curl --header "Authorization: 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" -o /opt/${LIBTORRENT_NAME} -L ${LIBTORRENT_DOWNLOAD_URL} \
     && tar -xzf /opt/${LIBTORRENT_NAME} \
     && rm /opt/${LIBTORRENT_NAME} \
     && cd /opt/libtorrent-rasterbar* \
@@ -134,8 +134,8 @@ RUN apt update \
         qtbase5-dev \
         qttools5-dev \
         zlib1g-dev \
-    && QBITTORRENT_RELEASE=$(curl -sX GET "https://api.github.com/repos/qBittorrent/qBittorrent/tags" | jq '.[] | select(.name | index ("alpha") | not) | select(.name | index ("beta") | not) | select(.name | index ("rc") | not) | .name' | head -n 1 | tr -d '"') \
-    && curl -o /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz -L "https://github.com/qbittorrent/qBittorrent/archive/${QBITTORRENT_RELEASE}.tar.gz" \
+    && QBITTORRENT_RELEASE=$(curl --header "Authorization: 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" -sX GET "https://api.github.com/repos/qBittorrent/qBittorrent/tags" | jq '.[] | select(.name | index ("alpha") | not) | select(.name | index ("beta") | not) | select(.name | index ("rc") | not) | .name' | head -n 1 | tr -d '"') \
+    && curl --header "Authorization: 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" -o /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz -L "https://github.com/qbittorrent/qBittorrent/archive/${QBITTORRENT_RELEASE}.tar.gz" \
     && tar -xzf /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz \
     && rm /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz \
     && cd /opt/qBittorrent-${QBITTORRENT_RELEASE} \
@@ -207,4 +207,4 @@ EXPOSE 8999/udp
 
 CMD ["/bin/bash", "/etc/openvpn/start.sh"]
 
-HEALTHCHECK --interval=5s --timeout=2s --retries=20 CMD /healthcheck.sh || exit 1
+HEALTHCHECK --interval=30s --timeout=15s --retries=20 CMD /healthcheck.sh || exit 1
