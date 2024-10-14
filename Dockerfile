@@ -1,10 +1,10 @@
 # qBittorrent, OpenVPN and WireGuard, qbittorrentvpn
-FROM ubuntu:jammy
+FROM ubuntu:oracular
 
 LABEL org.opencontainers.image.authors="ghost@ghosthacker.com"
-LABEL org.opencontainers.image.version="4.6.4"
+LABEL org.opencontainers.image.version="5.0.0"
 LABEL org.opencontainers.image.description="qBittorrent, OpenVPN and WireGuard"
-LABEL org.opencontainers.image.title="qBittorrentVPN"
+LABEL org.opencontainers.image.title="qBittorrentVPN v5.0.0 Libtorrent 2.x"
 
 ARG TARGETARCH
 
@@ -136,20 +136,14 @@ RUN apt update \
         pkg-config \
         qt6-base-dev \
         qt6-base-private-dev \
-        qt6-l10n-tools \
-        # qtbase5-dev \
-        # qtbase5-private-dev \
-        # qttools5-dev \
         qt6-tools-dev \
-        qt6-tools-dev-tools \
-        qt6-tools-private-dev \
         zlib1g-dev \
     && QBITTORRENT_RELEASE=$(curl  -sX GET "https://api.github.com/repos/qBittorrent/qBittorrent/tags" | jq '.[] | select(.name | index ("alpha") | not) | select(.name | index ("beta") | not) | select(.name | index ("rc") | not) | .name' | head -n 1 | tr -d '"') \
     && curl  -o /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz -L "https://github.com/qbittorrent/qBittorrent/archive/${QBITTORRENT_RELEASE}.tar.gz" \
     && tar -xzf /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz \
     && rm /opt/qBittorrent-${QBITTORRENT_RELEASE}.tar.gz \
     && cd /opt/qBittorrent-${QBITTORRENT_RELEASE} \
-    && cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DGUI=OFF -DCMAKE_CXX_STANDARD=17 -DQT6=ON \
+    && cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DGUI=OFF -DCMAKE_CXX_STANDARD=17 \
     && cmake --build build --parallel $(nproc) \
     && cmake --install build \
     && cd /opt \
@@ -165,13 +159,7 @@ RUN apt update \
         pkg-config \
         qt6-base-dev \
         qt6-base-private-dev \
-        qt6-l10n-tools \
-        # qtbase5-dev \
-        # qtbase5-private-dev \
-        # qttools5-dev \
         qt6-tools-dev \
-        qt6-tools-dev-tools \
-        qt6-tools-private-dev \
         zlib1g-dev \
     && apt-get clean \
     && apt --purge autoremove -y \
@@ -181,10 +169,10 @@ RUN apt update \
         /var/tmp/*
 
 # Install WireGuard and some other dependencies some of the scripts in the container rely on. - Step 9
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
-    && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
-    && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
-    && apt update \
+# RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 \
+#     && echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list \
+#     && printf 'Package: *\nPin: release a=unstable\nPin-Priority: 150\n' > /etc/apt/preferences.d/limit-unstable \
+RUN apt update \
     && apt install -y --no-install-recommends \
         ca-certificates \
         dos2unix \
@@ -192,13 +180,9 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D38
         ipcalc \
         iptables \
         kmod \
-        # libqt5network5 \
-        # libqt5xml5 \
-        # libqt5sql5 \
         libqt6network6 \
         libqt6xml6 \
-        libqt6sql6 \        
-        libssl3 \
+        libqt6sql6 \
         moreutils \
         net-tools \
         openresolv \
